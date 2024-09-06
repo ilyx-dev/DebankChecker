@@ -1,0 +1,9 @@
+api:
+  min_balance: 1 # Minimum balance in $
+
+paths:
+  wallets: "data/wallets.txt"
+  proxies: "data/proxies.txt" # In format of http://user:pass@ip:port
+  output: "output.xlsx"
+
+threads: 100

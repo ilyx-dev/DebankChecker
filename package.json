@@ -1,0 +1,27 @@
+{
+  "name": "demain",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "type": "module",
+  "scripts": {
+    "test_excel": "npx tsx utils/managers/excelManager.ts",
+    "start": "npx tsx index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "axios": "^1.7.7",
+    "crypto": "^1.0.1",
+    "fs": "^0.0.1-security",
+    "https-proxy-agent": "^7.0.5",
+    "js-yaml": "^4.1.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.4",
+    "typescript": "^5.5.4"
+  }
+}

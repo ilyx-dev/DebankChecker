@@ -2,21 +2,21 @@
 
 ## 🔍 Overview
 
-Debank Checker is a fast and efficient tool for mass analysis of cryptocurrency wallets on the Debank platform. It bypasses rate limits and security measures to provide comprehensive insights into wallet holdings across different blockchains and DeFi protocols. Designed for researchers, analysts, and anyone interested in on-chain data.
+DeBank Checker is a tool written in TypeScript for mass analysis of crypto wallets on the DeBank service. It bypasses all DeBank protections (429, x-headers, etc.) and parses data about tokens in networks and liquidity pools with subsequent saving to excel table in a convenient form. 
 
 ## 🛠️ Key Features
 
-* **Proxy Support**: Works with various proxy types, including mobile proxies, for uninterrupted operation and privacy.
-* **Asynchronous & Concurrent**:  Utilizes asynchronous programming for maximum speed, enabling checks of large numbers of wallets in parallel.
+* **Proxy Support**: Works with http/https proxy in format `http://user:pass@ip:port`
+* **Asynchronous & Concurrent**:  Uses asynchronous programming based on Promise and [p-limit](https://github.com/sindresorhus/p-limit) for maximum speed
 * **Customizable Filtering**:  Filter tokens displayed in the output based on their minimum value in dollars.
-* **Excel Export**:  Easily export collected data to a structured Excel spreadsheet.
+* **Excel Export**:  Export collected data to a structured Excel spreadsheet.
 * **Open Source & Modular**: Written in TypeScript with a clean, object-oriented structure for easy customization and extension.
 
 ## 🧩 Modules
 
-* **`DebankAPI`**: Handles all interactions with the Debank API. Includes logic for signature generation, proxy rotation, and request retrying.
-* **`DebankChecker`**:  Provides high-level functions to retrieve portfolio data and token balances for a given wallet address.
-* **`ProxyManager`**:  Manages the pool of proxies, ensuring efficient usage and optional validation.
+* **`DebankAPI`**: Manages all interactions with the Debank API. Includes logic for signature generation, changing TLS fingerprints and repeat requests.
+* **`DebankChecker`**:  Provides high-level functions to retrieve portfolio and token balance data for a given wallet address and proxy.
+* **`ProxyManager`**:  Manages a pool of proxy servers, ensuring their **SUPER FAST** validation via Web3 and issuance.
 * **`ExcelManager`**:  Handles the formatting and saving of data to an Excel spreadsheet. 
 * **`Helpers & Decorators`**: Contains utility functions (like random string generation, file reading) and custom decorators for retry logic. 
 

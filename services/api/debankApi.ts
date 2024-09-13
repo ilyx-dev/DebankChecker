@@ -11,7 +11,6 @@ enum HttpMethod {
 }
 
 export class DebankAPI {
-    private proxyManager: ProxyManager
     private maxAttempts: number
 
     private headers = {
@@ -32,8 +31,7 @@ export class DebankAPI {
         'Accept-Encoding': 'deflate',
     }
 
-    constructor(proxyManager: ProxyManager, maxAttempts: number) {
-        this.proxyManager = proxyManager
+    constructor(maxAttempts: number) {
         this.maxAttempts = maxAttempts
     }
 
@@ -61,12 +59,11 @@ export class DebankAPI {
     }
 
     @retry(function (this: DebankAPI) { return this.maxAttempts; })
-    async get(url: string, headers = {}) {
+    async get(url: string, proxy: string, headers = {}) {
         this.addXSignHeaders(url, HttpMethod.GET)
 
         Object.assign({}, this.headers, headers)
 
-        let proxy = await this.proxyManager.getWorkingProxy()
         let proxyAgent = new HttpsProxyAgent(proxy, {
             timeout: 5000,
             ciphers: helpers.getRandomTlsCiphers()
@@ -85,7 +82,6 @@ export class DebankAPI {
             },
             timeout: 5000
         }
-
         const response = await axios.request(config)
         return response.data
     }

@@ -30,4 +30,4 @@ chains:
   - 'linea'
   - 'scrl'
 
-threads: 50
+threads: 100

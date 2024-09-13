@@ -1,6 +1,5 @@
 import {DebankAPI} from "./api/debankApi";
 import {DebankResponse, PortfolioItem, TokenBalance} from "../utils/types";
-import {Chains} from "../utils/enums";
 
 export class DebankChecker {
     private debankApi: DebankAPI
@@ -18,7 +17,7 @@ export class DebankChecker {
         return this.extractData(response)
     }
 
-    async getTokensForChain(address: string, chain: Chains): Promise<TokenBalance> {
+    async getTokensForChain(address: string, chain: string): Promise<TokenBalance> {
         let response = await this.debankApi.get(`https://api.debank.com/token/balance_list?user_addr=${address}&chain=${chain}`)
         return this.extractData(response)
     }

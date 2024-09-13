@@ -11,14 +11,6 @@ export function randomStr(length: number): string {
     return result;
 }
 
-export function parseUrl(url: string): { hostname: string; path: string } {
-    const parsedUrl = new URL(url);
-    return {
-        hostname: parsedUrl.hostname,
-        path: parsedUrl.pathname,
-    }
-}
-
 export function randomChoice<T>(array: T[]): T {
     const randomIndex = Math.floor(Math.random() * array.length);
     return array[randomIndex];

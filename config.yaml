@@ -1,9 +1,33 @@
 api:
   min_balance: 1 # Minimum balance in $
+  max_attempts: 10
 
 paths:
   wallets: "data/wallets.txt"
   proxies: "data/proxies.txt" # In format of http://user:pass@ip:port
   output: "output.xlsx"
 
-threads: 100
+proxy:
+  max_attempts: 5
+  rpcs:
+    - 'https://arbitrum.drpc.org'
+    - 'https://1rpc.io/linea'
+    - 'https://base.drpc.org'
+    - 'https://mainnet.base.org'
+    - 'https://rpc.ankr.com/eth'
+    - 'https://eth.drpc.org'
+    - 'https://rpc.eth.gateway.fm'
+    - 'https://rpc.scroll.io'
+    - 'https://scroll.drpc.org'
+    - 'https://1rpc.io/linea'
+    - 'https://bsc.drpc.org'
+    - 'https://polygon.drpc.org'
+    - 'https://optimism.drpc.org'
+    - 'https://zksync.drpc.org'
+    - 'https://mainnet.era.zksync.io'
+
+chains:
+  - 'linea'
+  - 'scrl'
+
+threads: 50

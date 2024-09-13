@@ -120,11 +120,17 @@ export interface TokenBalance {
 export interface Config {
     api: {
         min_balance: number
+        max_attempts: number
     },
     paths: {
         wallets: string,
         proxies: string,
         output: string
     },
+    proxy: {
+        max_attempts: number
+        rpcs: string[]
+    },
+    chains: string[],
     threads: number
 }

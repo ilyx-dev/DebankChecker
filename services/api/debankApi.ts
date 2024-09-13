@@ -12,6 +12,7 @@ enum HttpMethod {
 
 export class DebankAPI {
     private proxyManager: ProxyManager
+    private maxAttempts: number
 
     private headers = {
         'Host': 'api.debank.com',
@@ -31,8 +32,9 @@ export class DebankAPI {
         'Accept-Encoding': 'deflate',
     }
 
-    constructor(proxyManager: ProxyManager) {
+    constructor(proxyManager: ProxyManager, maxAttempts: number) {
         this.proxyManager = proxyManager
+        this.maxAttempts = maxAttempts
     }
 
     extractPayloadAndPath(url: string): { payload: Record<string, string>, path: string } {
@@ -58,13 +60,13 @@ export class DebankAPI {
         this.headers['account'] = '{"random_at":' + (signature.ts - 39) + ',"random_id":"' + helpers.randomStr(32) + '","user_addr":null}'
     }
 
-    @retry()
+    @retry(function (this: DebankAPI) { return this.maxAttempts; })
     async get(url: string, headers = {}) {
         this.addXSignHeaders(url, HttpMethod.GET)
 
         Object.assign({}, this.headers, headers)
 
-        let proxy = this.proxyManager.getWorkingProxy()
+        let proxy = await this.proxyManager.getWorkingProxy()
         let proxyAgent = new HttpsProxyAgent(proxy, {
             timeout: 5000,
             ciphers: helpers.getRandomTlsCiphers()

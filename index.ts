@@ -3,11 +3,10 @@ import * as yaml from 'js-yaml'
 import {DebankAPI} from "./services/api/debankApi";
 import {ProxyManager} from "./utils/managers/proxyManager";
 import {DebankChecker} from "./services/debankChecker";
-import {Chains} from "./utils/enums";
 import {saveFullToExcel} from "./utils/managers/excelManager";
 import {Config, WalletData} from "./utils/types";
 
-async function getWalletInfo(address: string, debankChecker: DebankChecker, allPools: Set<string>, MIN_AMOUNT_BALANCE_TOKEN = 1): Promise<{ address: string; data: { [poolName: string]: any } }> {
+async function getWalletInfo(address: string, debankChecker: DebankChecker, allPools: Set<string>, CHAINS: string[], MIN_AMOUNT_BALANCE_TOKEN = 1): Promise<{ address: string; data: { [poolName: string]: any } }> {
     console.log(`Fetching data for address: ${address}`);
     const walletInfo: { [poolName: string]: any } = {};
 
@@ -32,10 +31,10 @@ async function getWalletInfo(address: string, debankChecker: DebankChecker, allP
         }
     }
 
-    for (const chain of Object.values(Chains)) {
+    for (const chain of CHAINS) {
         allPools.add(chain)
         walletInfo[chain] = []
-        const tokens = await debankChecker.getTokensForChain(address, chain as Chains)
+        const tokens = await debankChecker.getTokensForChain(address, chain)
         for (const token of tokens) {
             if (Math.abs(token.amount) * token.price > MIN_AMOUNT_BALANCE_TOKEN) {
                 walletInfo[chain].push({
@@ -54,12 +53,16 @@ async function main() {
     const config = loadConfig('config.yaml');
     const CONCURRENT_CHECKS = config.threads
     const MIN_AMOUNT_BALANCE_TOKEN = config.api.min_balance
+    const MAX_PROXY_ATTEMPTS = config.proxy.max_attempts
+    const MAX_API_REQUESTS_ATTEMPTS = config.api.max_attempts
+    const RPCs_FOR_PROXY_CHECK = config.proxy.rpcs
+    const CHAINS = config.chains
 
     let addresses = helpers.readFromFile(config.paths.wallets).split('\n');
     let proxies = helpers.readFromFile(config.paths.proxies).split('\n');
 
-    const proxyManager = new ProxyManager(proxies);
-    const debankAPI = new DebankAPI(proxyManager);
+    const proxyManager = new ProxyManager(proxies, RPCs_FOR_PROXY_CHECK, MAX_PROXY_ATTEMPTS);
+    const debankAPI = new DebankAPI(proxyManager, MAX_API_REQUESTS_ATTEMPTS);
     const debankChecker = new DebankChecker(debankAPI);
 
     const allPools = new Set<string>();
@@ -72,7 +75,7 @@ async function main() {
 
     for (const chunk of addressChunks) {
         const promises = chunk.map((address) =>
-            getWalletInfo(address, debankChecker, allPools, MIN_AMOUNT_BALANCE_TOKEN)
+            getWalletInfo(address, debankChecker, allPools, CHAINS, MIN_AMOUNT_BALANCE_TOKEN)
         );
         const results = await Promise.all(promises);
 

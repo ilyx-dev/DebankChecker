@@ -75,7 +75,7 @@ async function main() {
 
     const proxyManager = new ProxyManager(proxies, RPCs_FOR_PROXY_CHECK, MAX_PROXY_ATTEMPTS);
     const debankAPI = new DebankAPI(MAX_API_REQUESTS_ATTEMPTS);
-    const debankChecker = new DebankChecker(debankAPI, proxyManager);
+    const debankChecker = new DebankChecker(debankAPI);
 
     const allPools = new Set<string>();
     const walletsInfo: WalletData = {};

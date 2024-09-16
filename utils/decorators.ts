@@ -4,7 +4,7 @@ export function retry(retriesGetter: () => number, delay: number = 1000): Method
 
         descriptor.value = async function (...args: any[]) {
             let attempts = 0;
-            let lastError: Error | undefined;
+            let lastError: unknown;
 
             const retries = retriesGetter.call(this);
 

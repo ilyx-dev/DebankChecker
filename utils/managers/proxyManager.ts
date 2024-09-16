@@ -19,6 +19,7 @@ export class ProxyManager {
         const proxyAgent = new HttpsProxyAgent(proxy);
         const provider = randomChoice(this.RPCs_FOR_PROXY_CHECK)
         const web3 = new Web3(new HttpProvider(provider, {
+            // @ts-ignore
             agent: proxyAgent
         }))
         try {

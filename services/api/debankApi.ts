@@ -1,9 +1,9 @@
-import { getSignature } from "./signatureProcessor.js";
+// @ts-ignore
+import {getSignature} from "./signatureProcessor.js";
 import * as helpers from "../../utils/helpers";
-import {ProxyManager} from "../../utils/managers/proxyManager";
 import axios, {AxiosRequestConfig} from "axios";
-import { HttpsProxyAgent } from "https-proxy-agent";
-import { retry } from "../../utils/decorators"
+import {HttpsProxyAgent} from "https-proxy-agent";
+import {retry} from "../../utils/decorators"
 
 enum HttpMethod {
     GET = "GET",
@@ -13,7 +13,7 @@ enum HttpMethod {
 export class DebankAPI {
     private maxAttempts: number
 
-    private headers = {
+    private headers: Record<string, string> = {
         'Host': 'api.debank.com',
         'Connection': 'keep-alive',
         'sec-ch-ua': '"Not/A)Brand";v="8", "Chromium";v="126", "YaBrowser";v="24.7", "Yowser";v="2.5", "YaBrowserCorp";v="126.0"',

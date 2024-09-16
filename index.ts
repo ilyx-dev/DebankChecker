@@ -1,10 +1,10 @@
 import * as helpers from "./utils/helpers";
 import * as yaml from 'js-yaml';
-import { DebankAPI } from "./services/api/debankApi";
-import { ProxyManager } from "./utils/managers/proxyManager";
-import { DebankChecker } from "./services/debankChecker";
-import { saveFullToExcel } from "./utils/managers/excelManager";
-import { Config, WalletData } from "./utils/types";
+import {DebankAPI} from "./services/api/debankApi";
+import {ProxyManager} from "./utils/managers/proxyManager";
+import {DebankChecker} from "./services/debankChecker";
+import {saveFullToExcel} from "./utils/managers/excelManager";
+import {Config, Project, TokenBalance, WalletData} from "./utils/types";
 import pLimit from 'p-limit';
 
 async function getWalletInfoWithProxy(
@@ -21,7 +21,7 @@ async function getWalletInfoWithProxy(
 
     const walletInfo: { [poolName: string]: any } = {};
 
-    const pools = await debankChecker.getPortfolio(address, proxy);
+    const pools: Project[] = await debankChecker.getPortfolio(address, proxy);
 
     for (const pool of pools) {
         const poolInfo = `${pool.name} (${pool.chain})`;
@@ -45,7 +45,7 @@ async function getWalletInfoWithProxy(
     for (const chain of CHAINS) {
         allPools.add(chain);
         walletInfo[chain] = [];
-        const tokens = await debankChecker.getTokensForChain(address, chain, proxy);
+        const tokens: TokenBalance[] = await debankChecker.getTokensForChain(address, chain, proxy);
         for (const token of tokens) {
             if (Math.abs(token.amount) * token.price > MIN_AMOUNT_BALANCE_TOKEN) {
                 walletInfo[chain].push({
@@ -100,7 +100,7 @@ async function main() {
         }
     }
 
-    await saveFullToExcel(walletsInfo, config.paths.output);
+    saveFullToExcel(walletsInfo, config.paths.output);
 }
 
 function loadConfig(path: string): Config {

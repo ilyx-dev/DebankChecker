@@ -22,4 +22,10 @@ export class DebankChecker {
         return this.extractData(response)
     }
 
+    async getTotalUsdBalance(address: string, proxy: string): Promise<any> {
+        let response = await this.debankApi.get(`https://api.debank.com/user?id=${address}`, proxy)
+        const data = this.extractData(response)
+        return data['user']['desc']['usd_value']
+    }
+
 }

@@ -58,6 +58,15 @@ async function getWalletInfoWithProxy(
         }
     }
 
+    const totalUsdBalance = await debankChecker.getTotalUsdBalance(address, proxy)
+    walletInfo['total balance'] = []
+    walletInfo['total balance'].push({
+        name: '',
+        ticker: '',
+        amount: totalUsdBalance,
+        price: 1,
+    })
+
     return { address, data: walletInfo };
 }
 

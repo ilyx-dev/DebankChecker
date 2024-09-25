@@ -27,7 +27,9 @@ export function saveFullToExcel(walletData: WalletData, fileName: string) {
             let cellInfo = '';
             if (Array.isArray(tokens) && tokens.length > 0) {
                 tokens.forEach(token => {
-                    cellInfo += `${token.ticker} - ${token.amount.toFixed(4)} ($${(token.amount * token.price).toFixed(2)}) \n`;
+                    const tickerInfo = token.ticker ? `${token.ticker} - ` : '';
+                    const balanceInUSDInfo = token.ticker ? ` ($${(token.amount * token.price).toFixed(2)})` : ''
+                    cellInfo += `${tickerInfo}${token.amount.toFixed(4)} ${balanceInUSDInfo}\n`;
                 });
             } else {
                 cellInfo = '-'

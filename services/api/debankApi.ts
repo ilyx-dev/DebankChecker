@@ -60,14 +60,17 @@ export class DebankAPI {
 
     @retry(function (this: DebankAPI) { return this.maxAttempts; })
     async get(url: string, proxy: string, headers = {}) {
-        this.addXSignHeaders(url, HttpMethod.GET)
+        this.addXSignHeaders(url, HttpMethod.GET);
 
-        Object.assign({}, this.headers, headers)
+        Object.assign(this.headers, headers);
 
         let proxyAgent = new HttpsProxyAgent(proxy, {
             timeout: 5000,
             ciphers: helpers.getRandomTlsCiphers()
         });
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
 
         let config: AxiosRequestConfig = {
             method: HttpMethod.GET,
@@ -80,9 +83,18 @@ export class DebankAPI {
             validateStatus: function (status) {
                 return status >= 200 && status < 300;
             },
-            timeout: 5000
+            signal: controller.signal,
+        };
+
+        try {
+            const response = await axios.request(config);
+            clearTimeout(timeoutId);
+            return response.data;
+        } catch (error) {
+            if (controller.signal.aborted) {
+                throw new Error('Request timed out and was aborted');
+            }
+            throw error;
         }
-        const response = await axios.request(config)
-        return response.data
     }
 }

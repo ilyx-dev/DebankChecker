@@ -23,14 +23,14 @@ DeBank Checker is a tool written in TypeScript for mass analysis of crypto walle
 ## ⚙️ Getting Started
 
 1. **Prerequisites**:
-   - **Node.js and npm**: Make sure you have Node.js and npm installed.
+   - **Node.js and npm**: Make sure you have Node.js v20.12.0.
    - **Dependencies:** Install the project dependencies: `npm install`
 
 2. **Configuration:**
    - **Update `config.yaml`**:  Set your desired configuration, including minimum token balance, paths to wallet/proxy files, output filename, and the number of threads.
 
 3. **Run the Checker:**
-   - Execute: `node index.ts`
+   - Execute: `npx tsx index.ts`
 
 ## ⚠️ Disclaimer
 

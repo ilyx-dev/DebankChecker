@@ -19,6 +19,8 @@ async function getWalletInfoWithProxy(
     const proxy = await proxyManager.getWorkingProxy();
     console.log(`Fetching data for address: ${address} using proxy ${proxy}`);
 
+    let totalUsdBalance = 0;
+
     const walletInfo: { [poolName: string]: any } = {};
 
     const pools: Project[] = await debankChecker.getPortfolio(address, proxy);
@@ -30,12 +32,15 @@ async function getWalletInfoWithProxy(
 
         for (const item of pool.portfolio_item_list) {
             for (const token of item.asset_token_list) {
-                if (Math.abs(token.amount) * token.price > MIN_AMOUNT_BALANCE_TOKEN) {
+                const tokenUsdValue = Math.abs(token.amount) * token.price;
+                totalUsdBalance += tokenUsdValue
+                if (tokenUsdValue > MIN_AMOUNT_BALANCE_TOKEN) {
                     walletInfo[poolInfo].push({
                         name: token.name,
                         ticker: token.symbol,
                         amount: token.amount,
                         price: token.price,
+                        usd_value: tokenUsdValue
                     });
                 }
             }
@@ -58,7 +63,17 @@ async function getWalletInfoWithProxy(
         }
     }
 
-    const totalUsdBalance = await debankChecker.getTotalUsdBalance(address, proxy)
+    const usedChains = await debankChecker.getUsedChains(address, proxy);
+
+    for (const chain of usedChains) {
+        const tokens: TokenBalance[] = await debankChecker.getTokensForChain(address, chain, proxy);
+
+        for (const token of tokens) {
+            const tokenUsdValue = Math.abs(token.amount) * token.price;
+            totalUsdBalance += tokenUsdValue;
+        }
+    }
+
     walletInfo['total balance'] = []
     walletInfo['total balance'].push({
         name: '',

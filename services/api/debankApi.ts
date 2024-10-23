@@ -52,7 +52,7 @@ export class DebankAPI {
         let signature = getSignature(payload, method, path);
 
         this.headers['x-api-sign'] = signature.signature
-        this.headers['x-api-ts'] = signature.ts
+        this.headers['x-api-ts'] = String(signature.ts)
         this.headers['x-api-ver'] = signature.version
         this.headers['x-api-nonce'] = signature.nonce
         this.headers['account'] = '{"random_at":' + (signature.ts - 39) + ',"random_id":"' + helpers.randomStr(32) + '","user_addr":null}'
@@ -62,9 +62,11 @@ export class DebankAPI {
     async get(url: string, proxy: string, headers = {}) {
         this.addXSignHeaders(url, HttpMethod.GET);
 
-        Object.assign(this.headers, headers);
+        // Заменяем 'Connection' на 'close' при объединении заголовков
+        Object.assign(this.headers, headers, { 'Connection': 'close' });
 
         let proxyAgent = new HttpsProxyAgent(proxy, {
+            keepAlive: false, // Отключаем keep-alive
             timeout: 5000,
             ciphers: helpers.getRandomTlsCiphers()
         });
@@ -72,6 +74,7 @@ export class DebankAPI {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
 
+        // @ts-ignore
         let config: AxiosRequestConfig = {
             method: HttpMethod.GET,
             maxBodyLength: Infinity,
@@ -89,12 +92,24 @@ export class DebankAPI {
         try {
             const response = await axios.request(config);
             clearTimeout(timeoutId);
+
+            if (proxyAgent.destroy) {
+                proxyAgent.destroy();
+            }
+
             return response.data;
         } catch (error) {
+            clearTimeout(timeoutId);
+
+            if (proxyAgent.destroy) {
+                proxyAgent.destroy();
+            }
+
             if (controller.signal.aborted) {
                 throw new Error('Request timed out and was aborted');
             }
             throw error;
         }
     }
+
 }

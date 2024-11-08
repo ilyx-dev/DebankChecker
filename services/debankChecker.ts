@@ -31,7 +31,7 @@ export class DebankChecker {
     async getUsedChains(address: string, proxy: string): Promise<any> {
         let response = await this.debankApi.get(`https://api.debank.com/user?id=${address}`, proxy)
         const data: any = this.extractData(response)
-        return data['user']['desc']['used_chains']
+        return data['user']['desc']['used_chains'] || []
     }
 
 }

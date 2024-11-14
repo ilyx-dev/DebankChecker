@@ -132,5 +132,10 @@ export interface Config {
         rpcs: string[]
     },
     chains: string[],
+    features: {
+        enable_chains: boolean,
+        enable_pools: boolean,
+        enable_total_balance: boolean
+    },
     threads: number
 }

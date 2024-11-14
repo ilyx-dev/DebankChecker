@@ -13,7 +13,10 @@ async function getWalletInfoWithProxy(
     proxyManager: ProxyManager,
     allPools: Set<string>,
     CHAINS: string[],
-    MIN_AMOUNT_BALANCE_TOKEN: number
+    MIN_AMOUNT_BALANCE_TOKEN: number,
+    enableChains: boolean,
+    enablePools: boolean,
+    enableTotalBalance: boolean
 ): Promise<{ address: string; data: { [poolName: string]: any } }> {
 
     const proxy = await proxyManager.getWorkingProxy();
@@ -23,64 +26,68 @@ async function getWalletInfoWithProxy(
 
     const walletInfo: { [poolName: string]: any } = {};
 
-    const pools: Project[] = await debankChecker.getPortfolio(address, proxy);
+    if (enablePools) {
+        const pools: Project[] = await debankChecker.getPortfolio(address, proxy);
+        for (const pool of pools) {
+            const poolInfo = `${pool.name} (${pool.chain})`;
+            allPools.add(poolInfo);
+            walletInfo[poolInfo] = [];
 
-    for (const pool of pools) {
-        const poolInfo = `${pool.name} (${pool.chain})`;
-        allPools.add(poolInfo);
-        walletInfo[poolInfo] = [];
+            for (const item of pool.portfolio_item_list) {
+                for (const token of item.asset_token_list) {
+                    const tokenUsdValue = Math.abs(token.amount) * token.price;
+                    totalUsdBalance += tokenUsdValue
+                    if (tokenUsdValue > MIN_AMOUNT_BALANCE_TOKEN) {
+                        walletInfo[poolInfo].push({
+                            name: token.name,
+                            ticker: token.symbol,
+                            amount: token.amount,
+                            price: token.price,
+                            usd_value: tokenUsdValue
+                        });
+                    }
+                }
+            }
+        }
+    }
 
-        for (const item of pool.portfolio_item_list) {
-            for (const token of item.asset_token_list) {
-                const tokenUsdValue = Math.abs(token.amount) * token.price;
-                totalUsdBalance += tokenUsdValue
-                if (tokenUsdValue > MIN_AMOUNT_BALANCE_TOKEN) {
-                    walletInfo[poolInfo].push({
+    if (enableChains) {
+        for (const chain of CHAINS) {
+            allPools.add(chain);
+            walletInfo[chain] = [];
+            const tokens: TokenBalance[] = await debankChecker.getTokensForChain(address, chain, proxy);
+            for (const token of tokens) {
+                if (Math.abs(token.amount) * token.price > MIN_AMOUNT_BALANCE_TOKEN) {
+                    walletInfo[chain].push({
                         name: token.name,
                         ticker: token.symbol,
                         amount: token.amount,
                         price: token.price,
-                        usd_value: tokenUsdValue
                     });
                 }
             }
         }
     }
 
-    for (const chain of CHAINS) {
-        allPools.add(chain);
-        walletInfo[chain] = [];
-        const tokens: TokenBalance[] = await debankChecker.getTokensForChain(address, chain, proxy);
-        for (const token of tokens) {
-            if (Math.abs(token.amount) * token.price > MIN_AMOUNT_BALANCE_TOKEN) {
-                walletInfo[chain].push({
-                    name: token.name,
-                    ticker: token.symbol,
-                    amount: token.amount,
-                    price: token.price,
-                });
+    if (enableTotalBalance) {
+        const usedChains = await debankChecker.getUsedChains(address, proxy);
+        for (const chain of usedChains) {
+            const tokens: TokenBalance[] = await debankChecker.getTokensForChain(address, chain, proxy);
+
+            for (const token of tokens) {
+                const tokenUsdValue = Math.abs(token.amount) * token.price;
+                totalUsdBalance += tokenUsdValue;
             }
         }
+
+        walletInfo['total balance'] = []
+        walletInfo['total balance'].push({
+            name: '',
+            ticker: '',
+            amount: totalUsdBalance,
+            price: 1,
+        })
     }
-
-    const usedChains = await debankChecker.getUsedChains(address, proxy);
-
-    for (const chain of usedChains) {
-        const tokens: TokenBalance[] = await debankChecker.getTokensForChain(address, chain, proxy);
-
-        for (const token of tokens) {
-            const tokenUsdValue = Math.abs(token.amount) * token.price;
-            totalUsdBalance += tokenUsdValue;
-        }
-    }
-
-    walletInfo['total balance'] = []
-    walletInfo['total balance'].push({
-        name: '',
-        ticker: '',
-        amount: totalUsdBalance,
-        price: 1,
-    })
 
     return { address, data: walletInfo };
 }
@@ -93,6 +100,9 @@ async function main() {
     const MAX_API_REQUESTS_ATTEMPTS = config.api.max_attempts;
     const RPCs_FOR_PROXY_CHECK = config.proxy.rpcs;
     const CHAINS = config.chains;
+    const ENABLE_CHAINS = config.features.enable_chains
+    const ENABLE_POOLS = config.features.enable_pools
+    const ENABLE_TOTAL_BALANCE = config.features.enable_total_balance
 
     let addresses = helpers.readFromFile(config.paths.wallets).split('\n');
     let proxies = helpers.readFromFile(config.paths.proxies).split('\n');
@@ -107,7 +117,7 @@ async function main() {
     const limit = pLimit(CONCURRENT_CHECKS);
 
     const promises = addresses.map((address) =>
-        limit(() => getWalletInfoWithProxy(address, debankChecker, proxyManager, allPools, CHAINS, MIN_AMOUNT_BALANCE_TOKEN))
+        limit(() => getWalletInfoWithProxy(address, debankChecker, proxyManager, allPools, CHAINS, MIN_AMOUNT_BALANCE_TOKEN, ENABLE_CHAINS, ENABLE_POOLS, ENABLE_TOTAL_BALANCE))
     );
 
     const results = await Promise.all(promises);

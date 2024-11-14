@@ -1,6 +1,6 @@
 api:
-  min_balance: 1 # Minimum balance in $
-  max_attempts: 10
+  min_balance: 2 # Minimum balance in $
+  max_attempts: 100
 
 paths:
   wallets: "data/wallets.txt"
@@ -8,7 +8,7 @@ paths:
   output: "output.xlsx"
 
 proxy:
-  max_attempts: 5
+  max_attempts: 20
   rpcs:
     - 'https://arbitrum.drpc.org'
     - 'https://1rpc.io/linea'
@@ -29,5 +29,10 @@ proxy:
 chains:
   - 'linea'
   - 'scrl'
+
+features:
+  enable_chains: true
+  enable_pools: false
+  enable_total_balance: false
 
 threads: 100

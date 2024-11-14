@@ -1,17 +1,19 @@
 import {randomChoice} from "../helpers";
 import {HttpProvider, Web3} from "web3";
-import {ProxyNotFoundError} from "../errors";
 import {HttpsProxyAgent} from "https-proxy-agent";
+import pLimit from "p-limit";
 
 export class ProxyManager {
     private proxies: string[]
     private RPCs_FOR_PROXY_CHECK: string[]
     private max_attempts: number
+    private verify_threads: number
 
-    constructor(proxies: string[], RPCs_FOR_PROXY_CHECK: string[], max_attempts: number) {
+    constructor(proxies: string[], RPCs_FOR_PROXY_CHECK: string[], max_attempts: number, verify_threads: number) {
         this.proxies = proxies;
         this.max_attempts = max_attempts
         this.RPCs_FOR_PROXY_CHECK = RPCs_FOR_PROXY_CHECK
+        this.verify_threads = verify_threads
     }
 
 
@@ -30,14 +32,19 @@ export class ProxyManager {
         }
     }
 
-    async getWorkingProxy(): Promise<string> {
-        for (let attempt = 1; attempt <= this.max_attempts; attempt++) {
-            const randProxy = randomChoice(this.proxies);
+    async getWorkingProxies(): Promise<string[]> {
+        const limit = pLimit(this.verify_threads);
+        const proxyChecks = this.proxies.map(proxy => limit(() => this.checkProxyWithRetries(proxy)));
+        const results = await Promise.all(proxyChecks);
+        return this.proxies.filter((_, index) => results[index]);
+    }
 
-            if (await this.checkProxyStatus(randProxy)) {
-                return randProxy;
+    private async checkProxyWithRetries(proxy: string): Promise<boolean> {
+        for (let attempt = 1; attempt <= this.max_attempts; attempt++) {
+            if (await this.checkProxyStatus(proxy)) {
+                return true;
             }
         }
-        throw new ProxyNotFoundError()
+        return false;
     }
 }

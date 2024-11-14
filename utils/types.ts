@@ -129,6 +129,7 @@ export interface Config {
     },
     proxy: {
         max_attempts: number
+        verify_threads: number
         rpcs: string[]
     },
     chains: string[],

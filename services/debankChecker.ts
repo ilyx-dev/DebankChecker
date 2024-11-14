@@ -12,24 +12,18 @@ export class DebankChecker {
         return response.data;
     }
 
-    async getPortfolio(address: string, proxy: string): Promise<Project[]> {
-        let response = await this.debankApi.get(`https://api.debank.com/portfolio/project_list?user_addr=${address}`, proxy)
+    async getPortfolio(address: string): Promise<Project[]> {
+        let response = await this.debankApi.get(`https://api.debank.com/portfolio/project_list?user_addr=${address}`)
         return this.extractData(response)
     }
 
-    async getTokensForChain(address: string, chain: string, proxy: string): Promise<TokenBalance[]> {
-        let response = await this.debankApi.get(`https://api.debank.com/token/balance_list?user_addr=${address}&chain=${chain}`, proxy)
+    async getTokensForChain(address: string, chain: string): Promise<TokenBalance[]> {
+        let response = await this.debankApi.get(`https://api.debank.com/token/balance_list?user_addr=${address}&chain=${chain}`)
         return this.extractData(response)
     }
 
-    async getTotalUsdBalance(address: string, proxy: string): Promise<any> {
-        let response = await this.debankApi.get(`https://api.debank.com/user?id=${address}`, proxy)
-        const data: any = this.extractData(response)
-        return data['user']['desc']['usd_value']
-    }
-
-    async getUsedChains(address: string, proxy: string): Promise<any> {
-        let response = await this.debankApi.get(`https://api.debank.com/user?id=${address}`, proxy)
+    async getUsedChains(address: string): Promise<any> {
+        let response = await this.debankApi.get(`https://api.debank.com/user?id=${address}`)
         const data: any = this.extractData(response)
         return data['user']['desc']['used_chains'] || []
     }

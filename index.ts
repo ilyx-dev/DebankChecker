@@ -10,7 +10,6 @@ import pLimit from 'p-limit';
 async function getWalletInfoWithProxy(
     address: string,
     debankChecker: DebankChecker,
-    proxyManager: ProxyManager,
     allPools: Set<string>,
     CHAINS: string[],
     MIN_AMOUNT_BALANCE_TOKEN: number,
@@ -18,16 +17,13 @@ async function getWalletInfoWithProxy(
     enablePools: boolean,
     enableTotalBalance: boolean
 ): Promise<{ address: string; data: { [poolName: string]: any } }> {
-
-    const proxy = await proxyManager.getWorkingProxy();
-    console.log(`Fetching data for address: ${address} using proxy ${proxy}`);
+    console.log(`Fetching data for address: ${address}`);
 
     let totalUsdBalance = 0;
-
     const walletInfo: { [poolName: string]: any } = {};
 
     if (enablePools) {
-        const pools: Project[] = await debankChecker.getPortfolio(address, proxy);
+        const pools: Project[] = await debankChecker.getPortfolio(address);
         for (const pool of pools) {
             const poolInfo = `${pool.name} (${pool.chain})`;
             allPools.add(poolInfo);
@@ -55,7 +51,7 @@ async function getWalletInfoWithProxy(
         for (const chain of CHAINS) {
             allPools.add(chain);
             walletInfo[chain] = [];
-            const tokens: TokenBalance[] = await debankChecker.getTokensForChain(address, chain, proxy);
+            const tokens: TokenBalance[] = await debankChecker.getTokensForChain(address, chain);
             for (const token of tokens) {
                 if (Math.abs(token.amount) * token.price > MIN_AMOUNT_BALANCE_TOKEN) {
                     walletInfo[chain].push({
@@ -70,9 +66,9 @@ async function getWalletInfoWithProxy(
     }
 
     if (enableTotalBalance) {
-        const usedChains = await debankChecker.getUsedChains(address, proxy);
+        const usedChains = await debankChecker.getUsedChains(address);
         for (const chain of usedChains) {
-            const tokens: TokenBalance[] = await debankChecker.getTokensForChain(address, chain, proxy);
+            const tokens: TokenBalance[] = await debankChecker.getTokensForChain(address, chain);
 
             for (const token of tokens) {
                 const tokenUsdValue = Math.abs(token.amount) * token.price;
@@ -103,12 +99,17 @@ async function main() {
     const ENABLE_CHAINS = config.features.enable_chains
     const ENABLE_POOLS = config.features.enable_pools
     const ENABLE_TOTAL_BALANCE = config.features.enable_total_balance
+    const PROXY_VERIFIED_THREADS = config.proxy.verify_threads
 
     let addresses = helpers.readFromFile(config.paths.wallets).split('\n');
     let proxies = helpers.readFromFile(config.paths.proxies).split('\n');
 
-    const proxyManager = new ProxyManager(proxies, RPCs_FOR_PROXY_CHECK, MAX_PROXY_ATTEMPTS);
-    const debankAPI = new DebankAPI(MAX_API_REQUESTS_ATTEMPTS);
+    const proxyManager = new ProxyManager(proxies, RPCs_FOR_PROXY_CHECK, MAX_PROXY_ATTEMPTS, PROXY_VERIFIED_THREADS);
+    const verified_proxies = await proxyManager.getWorkingProxies()
+
+    console.log(`Verified proxies: ${verified_proxies.length}`)
+
+    const debankAPI = new DebankAPI(MAX_API_REQUESTS_ATTEMPTS, verified_proxies);
     const debankChecker = new DebankChecker(debankAPI);
 
     const allPools = new Set<string>();
@@ -117,7 +118,7 @@ async function main() {
     const limit = pLimit(CONCURRENT_CHECKS);
 
     const promises = addresses.map((address) =>
-        limit(() => getWalletInfoWithProxy(address, debankChecker, proxyManager, allPools, CHAINS, MIN_AMOUNT_BALANCE_TOKEN, ENABLE_CHAINS, ENABLE_POOLS, ENABLE_TOTAL_BALANCE))
+        limit(() => getWalletInfoWithProxy(address, debankChecker, allPools, CHAINS, MIN_AMOUNT_BALANCE_TOKEN, ENABLE_CHAINS, ENABLE_POOLS, ENABLE_TOTAL_BALANCE))
     );
 
     const results = await Promise.all(promises);

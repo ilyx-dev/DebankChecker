@@ -8,7 +8,8 @@ paths:
   output: "output.xlsx"
 
 proxy:
-  max_attempts: 20
+  max_attempts: 5
+  verify_threads: 1000
   rpcs:
     - 'https://arbitrum.drpc.org'
     - 'https://1rpc.io/linea'
@@ -32,7 +33,7 @@ chains:
 
 features:
   enable_chains: true
-  enable_pools: false
-  enable_total_balance: false
+  enable_pools: true
+  enable_total_balance: true
 
 threads: 100

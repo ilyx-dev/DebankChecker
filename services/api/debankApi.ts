@@ -4,6 +4,7 @@ import * as helpers from "../../utils/helpers";
 import axios, {AxiosRequestConfig} from "axios";
 import {HttpsProxyAgent} from "https-proxy-agent";
 import {retry} from "../../utils/decorators"
+import {randomChoice} from "../../utils/helpers";
 
 enum HttpMethod {
     GET = "GET",
@@ -31,8 +32,11 @@ export class DebankAPI {
         'Accept-Encoding': 'deflate',
     }
 
-    constructor(maxAttempts: number) {
+    private proxies: string[]
+
+    constructor(maxAttempts: number, proxies: string[]) {
         this.maxAttempts = maxAttempts
+        this.proxies = proxies
     }
 
     extractPayloadAndPath(url: string): { payload: Record<string, string>, path: string } {
@@ -59,14 +63,14 @@ export class DebankAPI {
     }
 
     @retry(function (this: DebankAPI) { return this.maxAttempts; })
-    async get(url: string, proxy: string, headers = {}) {
+    async get(url: string, headers = {}) {
+        const proxy = randomChoice(this.proxies)
         this.addXSignHeaders(url, HttpMethod.GET);
 
-        // Заменяем 'Connection' на 'close' при объединении заголовков
         Object.assign(this.headers, headers, { 'Connection': 'close' });
 
         let proxyAgent = new HttpsProxyAgent(proxy, {
-            keepAlive: false, // Отключаем keep-alive
+            keepAlive: false,
             timeout: 5000,
             ciphers: helpers.getRandomTlsCiphers()
         });

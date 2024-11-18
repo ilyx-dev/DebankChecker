@@ -31,9 +31,14 @@ chains:
   - 'linea'
   - 'scrl'
 
+chains_for_total_balance:
+  - 'linea'
+  - 'scrl'
+
 features:
   enable_chains: true
   enable_pools: true
   enable_total_balance: true
+  enable_pool_total_balance: true  # Works if enable_pools: true
 
 threads: 100

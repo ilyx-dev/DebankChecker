@@ -130,9 +130,10 @@ async function main() {
     const ENABLE_TOTAL_BALANCE = config.features.enable_total_balance
     const PROXY_VERIFIED_THREADS = config.proxy.verify_threads
     const ENABLE_POOL_TOTAL_BALANCE = config.features.enable_pool_total_balance
-    const CHAINS_FOR_TOTAL_BALANCE = config.chains_for_total_balance
+    const CHAINS_FOR_TOTAL_BALANCE = config.chains_for_pool_total_balance
 
     let addresses = helpers.readFromFile(config.paths.wallets).split('\n');
+    addresses = addresses.map(address => address.trim().toLowerCase());
     let proxies = helpers.readFromFile(config.paths.proxies).split('\n');
 
     const proxyManager = new ProxyManager(proxies, RPCs_FOR_PROXY_CHECK, MAX_PROXY_ATTEMPTS, PROXY_VERIFIED_THREADS);

@@ -133,7 +133,7 @@ export interface Config {
         rpcs: string[]
     },
     chains: string[],
-    chains_for_total_balance: string[]
+    chains_for_pool_total_balance: string[]
     features: {
         enable_chains: boolean,
         enable_pools: boolean,

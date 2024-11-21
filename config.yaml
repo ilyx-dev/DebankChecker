@@ -31,7 +31,7 @@ chains:
   - 'linea'
   - 'scrl'
 
-chains_for_total_balance:
+chains_for_pool_total_balance:
   - 'linea'
   - 'scrl'
 
